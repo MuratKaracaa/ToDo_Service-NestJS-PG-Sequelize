@@ -42,11 +42,9 @@ export class DeleteSelfInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Observable<any> {
-    const request: Request = context.switchToHttp().getRequest();
-    const { Roles } = request.user;
-    const ownsATeam = Roles.includes(rolesConstants.TEAM_LEADER);
-    if (!ownsATeam) {
-      throw new UnauthorizedException();
+    const isSelf = this.helpers.CheckIsSelf(context);
+    if (isSelf) {
+      throw new CannotDeleteSelfException();
     }
 
     return next.handle().pipe();
@@ -66,9 +64,11 @@ export class TeamDataQueryInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler<any>,
   ): Observable<any> {
-    const isSelf = this.helpers.CheckIsSelf(context);
-    if (isSelf) {
-      throw new CannotDeleteSelfException();
+    const request: Request = context.switchToHttp().getRequest();
+    const { Roles } = request.user;
+    const authorized = Roles.includes(rolesConstants.TEAM_LEADER);
+    if (!authorized) {
+      throw new UnauthorizedException();
     }
 
     return next.handle().pipe();
