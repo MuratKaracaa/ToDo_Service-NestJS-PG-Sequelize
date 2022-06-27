@@ -9,7 +9,10 @@ import { Observable } from 'rxjs';
 import { Request } from 'express';
 
 import { rolesConstants } from 'src/constants';
-import { CannotDeleteSelfException } from 'src/exceptions/userExceptions';
+import {
+  CannotDeleteSelfException,
+  NotTheLeaderOfATeamException,
+} from 'src/exceptions/userExceptions';
 import { HelperFunctions } from 'src/utils/helpers';
 
 /**
@@ -68,7 +71,7 @@ export class TeamDataQueryInterceptor implements NestInterceptor {
     const { Roles } = request.user;
     const authorized = Roles.includes(rolesConstants.TEAM_LEADER);
     if (!authorized) {
-      throw new UnauthorizedException();
+      throw new NotTheLeaderOfATeamException();
     }
 
     return next.handle().pipe();
